@@ -7,5 +7,8 @@ export default {
     '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nrwl/next/babel'] }]
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../coverage/apps/github-console-prototype'
+  coverageDirectory: '../../coverage/apps/github-console-prototype',
+  setupFiles: [
+    './specs/setup.ts',
+  ]
 };

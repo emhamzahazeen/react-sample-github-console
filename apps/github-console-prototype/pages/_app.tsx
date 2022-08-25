@@ -1,6 +1,17 @@
 import { AppProps } from 'next/app';
+import { ChakraProvider } from '@chakra-ui/react';
 import Head from 'next/head';
+import { RecoilRoot } from 'recoil';
+import { ErrorBoundary } from 'react-error-boundary';
 import './styles.css';
+
+function ErrorFallback({ error }) {
+  return (
+    <div role="alert">
+      <p>Something went wrong!</p>
+    </div>
+  );
+}
 
 function CustomApp({ Component, pageProps }: AppProps) {
   return (
@@ -8,9 +19,13 @@ function CustomApp({ Component, pageProps }: AppProps) {
       <Head>
         <title>Welcome to github-console-prototype!</title>
       </Head>
-      <main className="app">
-        <Component {...pageProps} />
-      </main>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ChakraProvider>
+          <RecoilRoot>
+            <Component {...pageProps} />
+          </RecoilRoot>
+        </ChakraProvider>
+      </ErrorBoundary>
     </>
   );
 }
