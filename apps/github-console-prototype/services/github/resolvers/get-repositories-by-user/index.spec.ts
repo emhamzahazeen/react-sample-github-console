@@ -25,33 +25,47 @@ const githubRepositoryArrayResponseFactory = array(githubRepositorySingleRespons
 
 describe('get-repositories', () => {
   test('calls the correct API URL', async () => {
-    const httpGet = jest.fn().mockResolvedValue({ data: githubRepositoryArrayResponseFactory() });
+    const httpGet = jest.fn().mockResolvedValue({
+      data: githubRepositoryArrayResponseFactory(),
+      headers: {
+        link: '<https://api.github.com/user/35577545/repos?page=2>; rel="next", <https://api.github.com/user/35577545/repos?page=2>; rel="last"'
+      }
+    });
     const options = optionsFactory();
     const dependencies = createDependencies(httpGet);
     const repositoryFetcher = createRepositoryFetcher(dependencies, options);
-    const repositoryFetcherParams = { handle: faker.internet.userName() };
+    const repositoryFetcherUrlParams = { params: { page: 1 } };
+    const repositoryFetcherParams = { handle: faker.internet.userName(), ...repositoryFetcherUrlParams.params };
     const expectedUrl = options.url.replace('{username}', repositoryFetcherParams.handle);
 
     await repositoryFetcher(repositoryFetcherParams);
 
     expect(httpGet).toHaveBeenCalled();
-    expect(httpGet).toHaveBeenCalledWith(expectedUrl);
+    expect(httpGet).toHaveBeenCalledWith(expectedUrl, repositoryFetcherUrlParams);
   });
 
   test('returns the correct mapped values', async () => {
     const remoteResponse = githubRepositoryArrayResponseFactory();
-    const httpGet = jest.fn().mockResolvedValue({ data: remoteResponse });
+    const httpGet = jest.fn().mockResolvedValue({
+      data: remoteResponse,
+      headers: {
+        link: '<https://api.github.com/user/35577545/repos?page=2>; rel="next", <https://api.github.com/user/35577545/repos?page=2>; rel="last"'
+      }
+    });
     const options = optionsFactory();
     const dependencies = createDependencies(httpGet);
     const repositoryFetcher = createRepositoryFetcher(dependencies, options);
-    const repositoryFetcherParams = { handle: faker.internet.userName() };
-    const expected = [
-      {
-        name: remoteResponse[0].name,
-        description: remoteResponse[0].description,
-        likes: remoteResponse[0].stargazers_count
-      }
-    ];
+    const repositoryFetcherParams = { handle: faker.internet.userName(), page: 1 };
+    const expected = {
+      totalPageCount: 2,
+      items: [
+        {
+          name: remoteResponse[0].name,
+          description: remoteResponse[0].description,
+          likes: remoteResponse[0].stargazers_count
+        }
+      ]
+    };
 
     const actual = await repositoryFetcher(repositoryFetcherParams);
 
